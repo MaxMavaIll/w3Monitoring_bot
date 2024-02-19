@@ -1,0 +1,12 @@
+#check_your_id https://t.me/RawDataBot
+ADMINS=[12465334069]
+USE_REDIS=false
+
+Bot_Token="kpzLaN23cEQwqfaYXZVn7szUzsjx2SPf"
+#REDIS_PASSWORD=kpzLaN23cEQwqfaYXZVn7szUzsjx2SPf
+
+[db]
+DB_HOST=""
+DB_PASS=""
+DB_USER=""
+DB_NAME=""

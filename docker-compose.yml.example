@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  "Name_Service":
+    image: server_"Name_Service"
+    build:
+      context: . 
+      dockerfile: Dockerfile
+    container_name: "Your_Name"
+    volumes:
+      - ./config.toml:/app/config.toml
+    command: ["python", "bot.py"]

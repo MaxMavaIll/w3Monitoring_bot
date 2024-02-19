@@ -1,0 +1,15 @@
+[Unit]
+Description=Vote
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=PATH_PROJECT
+ExecStart=PATH_PROJECT/.venv/bin/python main.py
+Restart=on-failure
+RestartSec=10
+LimitNOFILE=65535
+
+[Install]
+WantedBy=multi-user.target
