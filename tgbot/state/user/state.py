@@ -6,3 +6,10 @@ from aiogram.dispatcher.filters.state import StatesGroup, State
 
 #     get = State()
 #     write = State()
+
+class GetValidators(StatesGroup):
+#     """States for checker creating form"""
+
+    get = State()
+    get_val = State()
+    

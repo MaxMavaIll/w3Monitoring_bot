@@ -13,8 +13,10 @@ class Tg_bot:
 class DBConfig:
     host: str
     password: str
-    user: str
+    port: str
     database: str
+    def dsn(self):
+        return f"redis://:{self.password}@{self.host}:{self.port}/{self.database}"
 
 @dataclass
 class Miscellaneus:
@@ -37,9 +39,9 @@ def load_config(path_config: str = 'config.toml'):
         ), 
         db=DBConfig(
             host=config["db"]["DB_HOST"],
-            password=config["db"]["DB_PASS"],
-            user=config["db"]["DB_USER"],
-            database=config["db"]["DB_NAME"]
+            database=config["db"]["DB"],
+            port=config["db"]["DB_PORT"],
+            password=config["db"]["DB_PASS"]
         ),
         misc=Miscellaneus()
     )

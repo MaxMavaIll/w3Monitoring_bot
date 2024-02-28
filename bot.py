@@ -8,6 +8,9 @@ from tgbot.hendler.private.users.router import user_router_admin
 from tgbot.hendler.group.users.router import user_router_g
 from tgbot.config import load_config
 
+
+from aiogram.dispatcher.fsm.storage.redis import RedisStorage, DefaultKeyBuilder, StorageKey
+
 logger = logging.getLogger(__name__)
 
 
@@ -20,7 +23,9 @@ async def main():
     )
     logger.info("Starting bot")
 
+
     config = load_config("config.toml")
+    # storage = RedisStorage.from_url(config.db.dsn(), key_builder=DefaultKeyBuilder(with_bot_id=True))
     bot = Bot(token=config.tg_bot.token, parse_mode="HTML")
     dp = Dispatcher()
     dp['config'] = config
@@ -35,9 +40,10 @@ async def main():
         dp.include_router(router)
     
     
-    
-    await dp.start_polling(bot)
+    await asyncio.gather(
+        dp.start_polling(bot)
 
+    )
 
 
 
