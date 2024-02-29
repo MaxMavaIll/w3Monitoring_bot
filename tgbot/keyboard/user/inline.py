@@ -4,10 +4,9 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from tgbot.function import get_active_validators, get_name_validators
 
+config = toml.load('config.toml')
 
-
-async def menu():
-    config = toml.load('config.toml')
+async def inl_menu():
     builder = InlineKeyboardBuilder()
     
     for network_name in config["network"]:
@@ -17,19 +16,15 @@ async def menu():
                 callback_data=f"network&{network_name}"
             )
         )
-    builder.adjust(5)
+    builder.adjust(3)
     return builder.as_markup()
 
-async def already():
+async def inl_to_menu():
     builder = InlineKeyboardBuilder()
     builder.add(
             InlineKeyboardButton(
-                text="Next",
-                callback_data=f"validator&next"
-            ),
-            InlineKeyboardButton(
-                text="Back",
-                callback_data=f"validator&back"
+                text="Menu",
+                callback_data=f"menu&menu"
             )
         )
 

@@ -31,3 +31,11 @@ async def get_name_validators(
         rez[validator["description"]["moniker"]] = validator["operator_address"]
     
     return rez
+
+def send_buffer_to_data(user_buffer: list = [], user_network_data: dict = {}, name_network: str = None ):
+    tmp = {}
+
+    for moniker in user_buffer:
+        tmp[moniker] = {'status': 'BOND_STATUS_BONDED', 'jailed': False}
+
+    user_network_data[name_network] = tmp
