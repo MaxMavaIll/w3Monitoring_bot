@@ -1,6 +1,6 @@
 version: '3.8'
 
-services:
+bot:
   "Name_Service":
     image: server_"Name_Service"
     build:
@@ -10,3 +10,14 @@ services:
     volumes:
       - ./config.toml:/app/config.toml
     command: ["python", "bot.py"]
+
+
+  redis:
+    image: "redis:latest"
+    container_name: "name"
+    ports:
+      - "6379:6379"
+    volumes:
+      - "path_to_your_project"/redis/data:/data
+      - "path_to_your_project"/redis/redis.conf:/usr/local/etc/redis/redis.conf
+    command: redis-server /usr/local/etc/redis/redis.conf

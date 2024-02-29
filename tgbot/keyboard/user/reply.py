@@ -33,7 +33,7 @@ async def validators_reply(validators: list, get_list: list = []):
                 text=f"Clear All"
             ),
         KeyboardButton(
-                text=f"Next"
+                text=f"Save"
         )
     )
 

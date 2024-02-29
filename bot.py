@@ -25,9 +25,9 @@ async def main():
 
 
     config = load_config("config.toml")
-    # storage = RedisStorage.from_url(config.db.dsn(), key_builder=DefaultKeyBuilder(with_bot_id=True))
+    storage = RedisStorage.from_url(config.db.dsn(), key_builder=DefaultKeyBuilder(with_bot_id=True))
     bot = Bot(token=config.tg_bot.token, parse_mode="HTML")
-    dp = Dispatcher()
+    dp = Dispatcher(storage=storage)
     dp['config'] = config
     
     for router in [
@@ -44,8 +44,6 @@ async def main():
         dp.start_polling(bot)
 
     )
-
-
 
 if __name__ == "__main__":
     try:
