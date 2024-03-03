@@ -28,7 +28,13 @@ async def get_name_validators(
     rez = {}
 
     for validator in validators_data["validators"]:
-        rez[validator["description"]["moniker"]] = validator["operator_address"]
+        moniker = validator["description"]["moniker"]
+        validator_addr = validator["operator_address"]
+        commission = validator['commission']['commission_rates']['rate']
+        status = validator['status']
+        jailed = validator['jailed']
+
+        rez[moniker] = {'val_addr':  validator_addr, 'commission': commission, 'status': status, 'jailed': jailed}
     
     return rez
 
@@ -36,6 +42,11 @@ def send_buffer_to_data(user_buffer: list = [], get_valAddr: dict = {},  user_ne
     tmp = {}
 
     for moniker in user_buffer:
-        tmp[get_valAddr[moniker]] = {'status': 'BOND_STATUS_BONDED', 'jailed': False, 'moniker': moniker}
+        validator_addr = get_valAddr[moniker]['val_addr']
+        status = get_valAddr[moniker]['status']
+        jailed = get_valAddr[moniker]['jailed']
+        commission = get_valAddr[moniker]['commission']
+
+        tmp[validator_addr] = {'status': status, 'jailed': jailed, 'moniker': moniker, 'commission': commission}
 
     user_network_data[name_network] = tmp

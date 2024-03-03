@@ -70,7 +70,6 @@ def get_data_with_keys(keys: list) -> dict:
 
 
         value = json.loads(сonn_redis.get(key).decode("utf-8"))
-        log.info(f"{value}")
         for network in value["networks"]:
             if not data.get(network):
                     data[network] = {}
@@ -82,8 +81,7 @@ def get_data_with_keys(keys: list) -> dict:
                 data[network][val_addr]['info'] = value['networks'][network][val_addr]
                 data[network][val_addr]['user_ids'].append({'bot_id': bot_id, 'chat_id': chat_id, 'user_id': user_id})
                 
-    log.info(f'Data: {data}')
-    log.debug(value)
+    log.info(f'Data redis: {data}')
     return data
 
 
@@ -115,7 +113,11 @@ def update_data(update_data: dict, network: str, changed_validators: list):
                      f" {updated_data['networks'][network][changed_val_addr]['jailed']} "
                      f"-> {update_data[changed_val_addr]['info']['jailed']}")            
             updated_data['networks'][network][changed_val_addr]['jailed'] = update_data[changed_val_addr]['info']['jailed']
-
+            
+            log.info(f"Updating jailed usr {users_id['user_id']}:\n"
+                     f" {updated_data['networks'][network][changed_val_addr]['commission']} "
+                     f"-> {update_data[changed_val_addr]['info']['commission']}")
+            updated_data['networks'][network][changed_val_addr]['commission'] = update_data[changed_val_addr]['info']['commission']
             
             сonn_redis.set(key, json.dumps(updated_data))
             log.info("Data updated in redis")

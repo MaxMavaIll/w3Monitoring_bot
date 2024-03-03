@@ -23,34 +23,49 @@ async def check_validators_status(validators_data: dict, users_data: dict, netwo
     changed_validators = list()
     
     for validator in validators_data['validators']:
-        if validator['operator_address'] in users_data:
+        validator_addr = validator['operator_address']
 
-            if validator['status'] != users_data[validator['operator_address']]['info']['status']:
-                log.info(f"Jailed: {validator['jailed']}")
+        if validator_addr in users_data:
+            commission_now = validator['commission']['commission_rates']['rate']
+            status_now = validator['status']
+            jailed_now = validator['jailed']
+            status_old = users_data[validator_addr]['info']['status']
+            commission_old = users_data[validator_addr]['info']['commission']
+
+            if status_now != status_old:
                 
-                if validator['jailed'] == True:
-                    await send_message_bot(f"Validator <b>{users_data[validator['operator_address']]['info']['moniker']}</b> landed in jail"
+                if jailed_now == True:
+                    log.info(f"Jailed: {jailed_now}")
+
+                    await send_message_bot(f"Validator <b>{users_data[validator_addr]['info']['moniker']}</b> landed in jail"
                                            f"\n<b>{network.title()}</b>:"
-                                           f"\n    val_addr: <code>{validator['operator_address']}</code>"
-                                           f"\n    jailed: <b>{validator['jailed']}</b>"
-                                           f"\n    status: <b>{validator['status']}</b>", 
-                                           [ids['user_id'] for ids in users_data[validator['operator_address']]['user_ids'] ])
+                                           f"\n    val_addr: <code>{validator_addr}</code>"
+                                           f"\n    jailed: <b>{jailed_now}</b>"
+                                           f"\n    status: <b>{status_now}</b>", 
+                                           [ids['user_id'] for ids in users_data[validator_addr]['user_ids'] ])
                     
                 else:
                     
-                    await send_message_bot(f"Validator <b>{users_data[validator['operator_address']]['info']['moniker']}</b> received a new status"
+                    await send_message_bot(f"Validator <b>{users_data[validator_addr]['info']['moniker']}</b> received a new status"
                                            f"\n<b>{network.title()}</b>:"
-                                           f"\n    val_addr: <code>{validator['operator_address']}</code>"
-                                           f"\n    jailed: <b>{validator['jailed']}</b>"
-                                           f"\n    status: <b>{validator['status']}</b>", 
-                                           [ids['user_id'] for ids in users_data[validator['operator_address']]['user_ids'] ])
+                                           f"\n    val_addr: <code>{validator_addr}</code>"
+                                           f"\n    jailed: <b>{jailed_now}</b>"
+                                           f"\n    status: <b>{status_now}</b>", 
+                                           [ids['user_id'] for ids in users_data[validator_addr]['user_ids'] ])
                 
-                users_data[validator['operator_address']]['info']['status'] = validator['status']
-                users_data[validator['operator_address']]['info']['jailed'] = validator['jailed']
-                changed_validators.append(validator['operator_address'])
-                continue
+                users_data[validator_addr]['info']['status'] = status_now
+                users_data[validator_addr]['info']['jailed'] = jailed_now
+                changed_validators.append(validator_addr)
+            
+            if commission_now != commission_old:
+                await send_message_bot(f"Validator <b>{users_data[validator_addr]['info']['moniker']}</b> changed the commission"
+                                           f"\n<b>{network.title()}</b>:"
+                                           f"\n    val_addr: <code>{validator_addr}</code>"
+                                           f"\n    commission: <b>{int(float(commission_old) * 100)}% -> {int(float(commission_now) * 100)}</b>% ",
+                                           [ids['user_id'] for ids in users_data[validator_addr]['user_ids'] ])
 
-            log.info(f"Status {users_data[validator['operator_address']]['info']['status']} не був змінений")
+                users_data[validator_addr]['info']['commission'] = commission_now
+                changed_validators.append(validator_addr)
 
     return changed_validators
 
@@ -61,16 +76,15 @@ async def main():
         keys = get_keys_redis()
         data = get_data_with_keys(keys=keys)
 
-        # tasks = [ network for network in data]
-        # await asyncio.gather(*tasks)
         for network in data:
             try: 
                 validators_data = await get_validators_all(network)
             
-            # log.info(f"Data: {data[network]}")
-                changed_validators = await check_validators_status(validators_data=validators_data, users_data=data[network], network=network)
+                changed_validators = await check_validators_status(validators_data=validators_data,
+                                                                users_data=data[network], 
+                                                                network=network)
             
-                log.info(f"Data: {changed_validators}")
+                log.info(f"List changed validators: {changed_validators}")
 
                 if changed_validators:
                     log.info("Data update redis")
