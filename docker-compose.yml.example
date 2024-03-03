@@ -1,6 +1,6 @@
 version: '3.8'
 
-bot:
+services:
   "Name_Service":
     image: server_"Name_Service"
     build:
@@ -21,3 +21,13 @@ bot:
       - "path_to_your_project"/redis/data:/data
       - "path_to_your_project"/redis/redis.conf:/usr/local/etc/redis/redis.conf
     command: redis-server /usr/local/etc/redis/redis.conf
+
+  monitoring:
+    build:
+      context: .
+      dockerfile: ./scheduler/Dockerfile
+    container_name: "name"
+    restart: unless-stopped
+    volumes:
+      - ./config.toml:/app/config.toml
+    command: ["python", "check_network.py"]

@@ -1,12 +1,14 @@
 #check_your_id https://t.me/RawDataBot
-ADMINS=[12465334069]
-USE_REDIS=false
-
-Bot_Token="kpzLaN23cEQwqfaYXZVn7szUzsjx2SPf"
-#REDIS_PASSWORD=kpzLaN23cEQwqfaYXZVn7szUzsjx2SPf
+Admins = [12465334069]
+Bot_Token = "kpzLaN23cEQwqfaYXZVn7szUzsjx2SPf"
+time_sleep = 1
 
 [db]
-DB_HOST=""
-DB_PASS=""
-DB_USER=""
-DB_NAME=""
+DB=0
+DB_HOST="redis"
+DB_PASS="1ORuWEtn34cF5i29uf3rdh0OiW5fZulqDLH6"
+DB_PORT="6379"
+
+
+[network.cosmos]
+api = 'https://cosmos-api.w3coins.io:443'
