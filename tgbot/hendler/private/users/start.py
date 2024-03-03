@@ -22,19 +22,15 @@ async def Start( message: Message, state: FSMContext):
     log.info("Function Start")
 
     data = await state.get_data()
-    user_id = str(message.from_user.id)
-    if not data.get(user_id):
-        log.info(f"Add new user {message.from_user.id} | {message.from_user.first_name}")
-        data[user_id] = {}
     
-    if not data[user_id].get('networks'):
-        data[user_id]['networks'] = {}
+    if not data.get('networks'):
+        data['networks'] = {}
 
-    data[user_id]['buffer_validator'] = []
-    data[user_id]['network'] = None
+    data['buffer_validator'] = []
+    data['network'] = None
 
     bot_msg = await message.answer(f"Hallo user {message.from_user.first_name}!!\nChoose a network ↓", reply_markup=await inl_menu())
-    data[user_id]["bot_msg_id"] = bot_msg.message_id
+    data["bot_msg_id"] = bot_msg.message_id
     log.info(f"Data: {data}")
 
 
@@ -50,16 +46,17 @@ async def Choose_Network(callback: CallbackQuery, state: FSMContext):
     user_id = str(callback.from_user.id)
     data = await state.get_data()
     network = callback.data.split("&")[-1]
-    data[user_id]['network'] = network
+    data['network'] = network
 
-    if not data[user_id]['networks'].get(network):
+    if not data['networks'].get(network):
         log.info(f"Add new network {user_id} | {network}")
-        data[user_id]['networks'][network] = {}
+        data['networks'][network] = {}
     
-    if  data[user_id]['networks'][network] != {}:
-        data[user_id]['buffer_validator'] = list(data[user_id]['networks'][network].keys())
+    if  data['networks'][network] != {}:
+        for val_addr in data['networks'][network]:
+            data['buffer_validator'].append(data['networks'][network][val_addr]['moniker'])
 
-    choose_validators = data[user_id]['buffer_validator']
+    choose_validators = data['buffer_validator']
 
     await callback.message.delete()
 
@@ -70,7 +67,7 @@ async def Choose_Network(callback: CallbackQuery, state: FSMContext):
     bot_msg = await callback.message.answer(f"Choose the validator you want to monitor ↓",
                                             reply_markup=await validators_reply(validators=validators, get_list=choose_validators))
     
-    data[user_id]["bot_msg_id"] = bot_msg.message_id
+    data["bot_msg_id"] = bot_msg.message_id
 
     await state.set_state(GetValidators.get_val)
     await state.update_data(data)
@@ -83,12 +80,12 @@ async def Choose_Validator(message: Message, state: FSMContext, bot: Bot):
 
     user_id = str(message.from_user.id)
     data = await state.get_data()
-    network = data[user_id]['network']
-    choose_validators = data[user_id]['buffer_validator']
+    network = data['network']
+    choose_validators = data['buffer_validator']
 
     if '.' in message.text:
         moniker = message.text.split('. ')[1]
-    bot_msg_id = data[user_id]["bot_msg_id"]
+    bot_msg_id = data["bot_msg_id"]
 
     validators_data = await get_active_validators(name_network=network)
     validators = await get_name_validators(validators_data=validators_data)
@@ -108,10 +105,10 @@ async def Choose_Validator(message: Message, state: FSMContext, bot: Bot):
             bot_msg = await message.answer(f"Great I will monitor your validators if you are outside the active set and in jail I will let you know:\nValidators:\n\t{*choose_validators,}",
                                         reply_markup= await inl_to_menu())
 
-        send_buffer_to_data(choose_validators, data[user_id]['networks'], network)
+        send_buffer_to_data(choose_validators, validators, data['networks'], network)
 
         choose_validators.clear()
-        data[user_id]["bot_msg_id"] = bot_msg.message_id
+        data["bot_msg_id"] = bot_msg.message_id
         
         await state.set_state()
         
@@ -122,7 +119,7 @@ async def Choose_Validator(message: Message, state: FSMContext, bot: Bot):
         bot_msg = await message.answer(f"Maybe you want to choose another network?\nChoose a network ↓", 
                                                 reply_markup=await inl_menu())
         
-        data[user_id]["bot_msg_id"] = bot_msg.message_id
+        data["bot_msg_id"] = bot_msg.message_id
         
         await message.delete()
         await bot.delete_message(message_id=bot_msg_id, chat_id=message.from_user.id)
@@ -138,7 +135,7 @@ async def Choose_Validator(message: Message, state: FSMContext, bot: Bot):
         await message.delete()
         bot_msg = await message.answer(f"Choose validators: {*choose_validators,}", reply_markup=await validators_reply(validators=validators, get_list=choose_validators))
         await bot.delete_message(message_id=bot_msg_id, chat_id=message.from_user.id)
-        data[user_id]["bot_msg_id"] = bot_msg.message_id
+        data["bot_msg_id"] = bot_msg.message_id
         
 
 
@@ -150,7 +147,7 @@ async def Choose_Validator(message: Message, state: FSMContext, bot: Bot):
         await message.delete()
         bot_msg = await message.answer(f"Choose validators: {*choose_validators,}", reply_markup=await validators_reply(validators=validators, get_list=choose_validators))
         await bot.delete_message(message_id=bot_msg_id, chat_id=message.from_user.id)
-        data[user_id]["bot_msg_id"] = bot_msg.message_id
+        data["bot_msg_id"] = bot_msg.message_id
         log.info(f"bot_msg_id: {bot_msg.message_id}")
 
     elif moniker in choose_validators:
@@ -160,7 +157,7 @@ async def Choose_Validator(message: Message, state: FSMContext, bot: Bot):
         await message.delete()
         bot_msg = await message.answer(f"Choose validators: {*choose_validators,}", reply_markup=await validators_reply(validators=validators, get_list=choose_validators))
         await bot.delete_message(message_id=bot_msg_id, chat_id=message.from_user.id)
-        data[user_id]["bot_msg_id"] = bot_msg.message_id
+        data["bot_msg_id"] = bot_msg.message_id
 
     await state.update_data(data)
 
@@ -171,12 +168,12 @@ async def Menu(callback: CallbackQuery, state: FSMContext, bot: Bot):
     data = await state.get_data()
     user_id = str(callback.from_user.id)
     
-    data[user_id]['buffer_validator'] = []
-    data[user_id]['network'] = None
+    data['buffer_validator'] = []
+    data['network'] = None
 
     await callback.message.delete()
     bot_msg = await callback.message.answer(f"{callback.from_user.first_name}, Perhaps you'd like to monitor validators in other networks as well?", 
                                    reply_markup=await inl_menu())
-    data[user_id]["bot_msg_id"] = bot_msg.message_id
+    data["bot_msg_id"] = bot_msg.message_id
 
     await state.update_data(data)

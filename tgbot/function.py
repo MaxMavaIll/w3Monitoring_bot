@@ -32,10 +32,10 @@ async def get_name_validators(
     
     return rez
 
-def send_buffer_to_data(user_buffer: list = [], user_network_data: dict = {}, name_network: str = None ):
+def send_buffer_to_data(user_buffer: list = [], get_valAddr: dict = {},  user_network_data: dict = {}, name_network: str = None ):
     tmp = {}
 
     for moniker in user_buffer:
-        tmp[moniker] = {'status': 'BOND_STATUS_BONDED', 'jailed': False}
+        tmp[get_valAddr[moniker]] = {'status': 'BOND_STATUS_BONDED', 'jailed': False, 'moniker': moniker}
 
     user_network_data[name_network] = tmp
