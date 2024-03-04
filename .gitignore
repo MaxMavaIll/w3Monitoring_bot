@@ -5,3 +5,4 @@ token
 config.toml
 docker-compose.yml
 test.py
+redis/redis.conf
