@@ -10,12 +10,12 @@ from tgbot.keyboard.user.reply import validators_reply
 
 from tgbot.hendler.private.users.router import user_router
 from tgbot.state.user.state import GetValidators
-from tgbot.function import get_active_validators, get_name_validators, send_buffer_to_data
+from tgbot.function import get_active_validators, get_name_validators, send_buffer_to_data, form_answer
 #from tgbot.state.user.state import 
 #from tgbot.keyboard.user.inline import 
 
 import logging as log
-
+import asyncio
 
 @user_router.message(Command(commands="start"))
 async def Start( message: Message, state: FSMContext):
@@ -29,7 +29,7 @@ async def Start( message: Message, state: FSMContext):
     data['buffer_validator'] = []
     data['network'] = None
 
-    bot_msg = await message.answer(f"Hallo user {message.from_user.first_name}!!\nChoose a network ↓", reply_markup=await inl_menu())
+    bot_msg = await message.answer(f"Hallo {message.from_user.first_name}!!\nSelect a network ↓", reply_markup=await inl_menu())
     data["bot_msg_id"] = bot_msg.message_id
     log.info(f"Data: {data}")
 
@@ -38,7 +38,6 @@ async def Start( message: Message, state: FSMContext):
     # await state.set_state(GetValidators.get)
 
     
-
 @user_router.callback_query(Text(text_startswith='network&'))
 async def Choose_Network(callback: CallbackQuery, state: FSMContext):
     log.info("Function Choose_Network")
@@ -62,9 +61,10 @@ async def Choose_Network(callback: CallbackQuery, state: FSMContext):
 
     validators_data = await get_active_validators(name_network=network)
     validators = await get_name_validators(validators_data=validators_data)
-    log.info(validators)
     
-    bot_msg = await callback.message.answer(f"Choose the validator you want to monitor ↓",
+    bot_msg = await callback.message.answer(f"Select the validator you'd like to monitor.\nYou can do it by either:"
+                                            f"\n  * <b>Typing the moniker of your validator</b>"
+                                            f"\n  * <b>Finding it on the keyboard (active set only)</b>",
                                             reply_markup=await validators_reply(validators=validators, get_list=choose_validators))
     
     data["bot_msg_id"] = bot_msg.message_id
@@ -72,7 +72,6 @@ async def Choose_Network(callback: CallbackQuery, state: FSMContext):
     await state.set_state(GetValidators.get_val)
     await state.update_data(data)
     
-
 
 @user_router.message(state=GetValidators.get_val)
 async def Choose_Validator(message: Message, state: FSMContext, bot: Bot):
@@ -85,6 +84,8 @@ async def Choose_Validator(message: Message, state: FSMContext, bot: Bot):
 
     if '.' in message.text:
         moniker = message.text.split('. ')[1]
+    else:
+        moniker = message.text
     bot_msg_id = data["bot_msg_id"]
 
     validators_data = await get_active_validators(name_network=network)
@@ -101,8 +102,10 @@ async def Choose_Validator(message: Message, state: FSMContext, bot: Bot):
         if choose_validators == []:
             bot_msg = await message.answer(f"I saved your changes.",
                                         reply_markup= await inl_to_menu())
+            
         else:
-            bot_msg = await message.answer(f"Great I will monitor your validators if you are outside the active set and in jail I will let you know:\nValidators:\n\t{*choose_validators,}",
+            message_form_answer = await form_answer(choosed_validators=choose_validators, get_valAddr=validators)
+            bot_msg = await message.answer(f"Great I will monitor your validators if you are outside the active set and in jail I will let you know:\n<b>{network}</b>:{message_form_answer}",
                                         reply_markup= await inl_to_menu())
 
         send_buffer_to_data(choose_validators, validators, data['networks'], network)
@@ -123,8 +126,6 @@ async def Choose_Validator(message: Message, state: FSMContext, bot: Bot):
         
         await message.delete()
         await bot.delete_message(message_id=bot_msg_id, chat_id=message.from_user.id)
-        
-        
         
         await state.set_state()
     
@@ -157,6 +158,15 @@ async def Choose_Validator(message: Message, state: FSMContext, bot: Bot):
         await message.delete()
         bot_msg = await message.answer(f"Choose validators: {*choose_validators,}", reply_markup=await validators_reply(validators=validators, get_list=choose_validators))
         await bot.delete_message(message_id=bot_msg_id, chat_id=message.from_user.id)
+        data["bot_msg_id"] = bot_msg.message_id
+
+    else:
+        await bot.delete_message(message_id=bot_msg_id, chat_id=message.from_user.id)
+        await message.delete()
+        bot_msg = await message.answer(f"I did not find this validator, please try again")
+        await asyncio.sleep(1)
+        await bot.delete_message(message_id=bot_msg.message_id, chat_id=message.from_user.id)
+        bot_msg = await message.answer(f"Choose validators: {*choose_validators,}", reply_markup=await validators_reply(validators=validators, get_list=choose_validators))
         data["bot_msg_id"] = bot_msg.message_id
 
     await state.update_data(data)

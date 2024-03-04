@@ -16,6 +16,7 @@ async def get_active_validators(
                 if response.status == 200:
                     log.debug(f"{name_network}  -> Success, I get 200")
                     data = await response.json()
+                    data = sorted(data['validators'], key=lambda x: int(x["tokens"]), reverse=True)
                     return data 
                 else:
                     log.error(f"{name_network}  -> Fail, I get {response.status}")
@@ -27,7 +28,7 @@ async def get_name_validators(
     ) -> dict:
     rez = {}
 
-    for validator in validators_data["validators"]:
+    for validator in validators_data:
         moniker = validator["description"]["moniker"]
         validator_addr = validator["operator_address"]
         commission = validator['commission']['commission_rates']['rate']
@@ -50,3 +51,21 @@ def send_buffer_to_data(user_buffer: list = [], get_valAddr: dict = {},  user_ne
         tmp[validator_addr] = {'status': status, 'jailed': jailed, 'moniker': moniker, 'commission': commission}
 
     user_network_data[name_network] = tmp
+
+async def form_answer(choosed_validators: list, get_valAddr: dict):
+    message = ""
+    log.info(f"Choosed_Validators: {choosed_validators}")
+    for moniker in choosed_validators:
+        status = get_valAddr[moniker]['status']
+        jailed = get_valAddr[moniker]['jailed']
+        commission = get_valAddr[moniker]['commission']
+        validator_addr = get_valAddr[moniker]['val_addr']
+
+        message += f"\n  {moniker}:"
+        message += f"\n    val_addr: <code>{validator_addr}</code>"
+        message += f"\n    status: {status}"
+        message += f"\n    jailed: {jailed}"
+        message += f"\n    commission: {int(float(commission) * 100)}%"
+        message += f"\n"
+
+    return message

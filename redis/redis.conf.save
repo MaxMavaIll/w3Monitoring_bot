@@ -1,0 +1,3 @@
+appendonly yes
+save 3600 1
+requirepass 1ORuWEtn34cF5i29uf3rdh0OiW5fZulqDLH6
