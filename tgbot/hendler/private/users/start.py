@@ -29,7 +29,7 @@ async def Start( message: Message, state: FSMContext):
     data['buffer_validator'] = []
     data['network'] = None
 
-    bot_msg = await message.answer(f"Hallo {message.from_user.first_name}!!\nSelect a network ↓", reply_markup=await inl_menu())
+    bot_msg = await message.answer(f"Hello {message.from_user.first_name}!!\nSelect a network ↓", reply_markup=await inl_menu())
     data["bot_msg_id"] = bot_msg.message_id
     log.info(f"Data: {data}")
 
