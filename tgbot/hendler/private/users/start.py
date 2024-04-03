@@ -63,6 +63,12 @@ async def Choose_Network(callback: CallbackQuery, state: FSMContext, bot: Bot):
     validators_data = await get_active_validators(name_network=network)
     validators = await get_name_validators(validators_data=validators_data)
     await bot.delete_message(message_id=bot_msg.message_id, chat_id=callback.from_user.id)
+
+    if validators == {}:
+        bot_msg = await callback.message.answer("I didn't receive data from the API", reply_markup=await inl_to_menu())
+        data["bot_msg_id"] = bot_msg.message_id
+        await state.update_data(data)
+        return
     
     bot_msg = await callback.message.answer(f"Select the validator you'd like to monitor.\nYou can do it by either:"
                                             f"\n  * <b>Typing the moniker of your validator</b>"
