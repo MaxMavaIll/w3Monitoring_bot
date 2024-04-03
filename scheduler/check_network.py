@@ -89,7 +89,8 @@ async def main():
                 if changed_validators:
                     log.info("Data update redis")
                     update_data(update_data=data[network], network=network, changed_validators=changed_validators)
-            except aiohttp.client_exceptions.ClientConnectorError:
+                    
+            except:
                 log.exception(f"Network {network}:")
 
         log.info(f"Sleep {config['time_sleep']} min")
