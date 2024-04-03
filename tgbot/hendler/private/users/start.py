@@ -39,7 +39,7 @@ async def Start( message: Message, state: FSMContext):
 
     
 @user_router.callback_query(Text(text_startswith='network&'))
-async def Choose_Network(callback: CallbackQuery, state: FSMContext):
+async def Choose_Network(callback: CallbackQuery, state: FSMContext, bot: Bot):
     log.info("Function Choose_Network")
 
     user_id = str(callback.from_user.id)
@@ -59,8 +59,10 @@ async def Choose_Network(callback: CallbackQuery, state: FSMContext):
 
     await callback.message.delete()
 
+    bot_msg = await callback.message.answer("Wait a moment, I'm getting the data")
     validators_data = await get_active_validators(name_network=network)
     validators = await get_name_validators(validators_data=validators_data)
+    await bot.delete_message(message_id=bot_msg.message_id, chat_id=callback.from_user.id)
     
     bot_msg = await callback.message.answer(f"Select the validator you'd like to monitor.\nYou can do it by either:"
                                             f"\n  * <b>Typing the moniker of your validator</b>"
